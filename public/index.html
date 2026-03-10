@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang = "en">
+<head>
+    <meta charset = "UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>HuffmanEncryptor</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="app.js" defer></script>
+</head>
+<body>
+    <h1>2B Huffman Encryption</h1>
+    <!--Set up the division for the user to encode and decode-->
+
+    <!--For now just except one File for each option-->
+    <div class = "flexcontainer">
+        <div class="containerfChild">
+            <p>Upload Spreadsheets here</p>
+            <div id="Encryption" class="drop-zone">
+                <input type = "file" id="eFileDrop" name ="myfile"> <!--Check if the name messes it up later for fstream management-->
+            </div>
+            <button type="button" id="encodeBut">Encode Spreadsheet!</button>
+            
+        </div>
+            <div class="containerfChild">
+            <p>Upload Encrypted files here</p>
+            <div id="Decryption" class="drop-zone">
+                <input type = "file" id="dFileDrop" name ="myfile"> <!--Check if the name messes it up later for fstream management-->
+            </div>
+            <button type="button" id="decodeBut">Decode Spreadsheet!</button>
+        </div>
+    </div>
+
+</body>
+</html>
