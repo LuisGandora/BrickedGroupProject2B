@@ -3,6 +3,8 @@ const encryptDropZone = document.getElementById('Encryption');
 const decryptDropZone = document.getElementById('Decryption');
 const encryptInp = document.getElementById('eFileDrop');
 const decryptInp = document.getElementById('dFileDrop');
+//access hidden div
+const hiddenDivBut = document.getElementById('hiddenHuffman');
 let encryptFile=null;
 let decryptFile = null;
 
@@ -21,6 +23,18 @@ function handleDFile(file){
     console.log("Success! File stored in var", decryptFile);
 }
 
+function hiddenInTheLeaf(filePath)//just unhides the button
+{
+    if(hiddenDivBut.classList.contains("hidden"))
+    {
+        hiddenDivBut.classList.remove("hidden");
+        
+    }
+    const anchor = hiddenDivBut.getElementsByTagName('a');
+    anchor[0].setAttribute("href",filePath); // replace code.png with the file you need to upload ig
+    anchor[0].setAttribute("download",filePath);
+}
+
 //make a detector for when each element (encryptDrop or decryptDrop)
 //has an item over it
 encryptDropZone.addEventListener('dragover', (e)=>
@@ -37,19 +51,13 @@ encryptDropZone.addEventListener('dragleave', (e)=>
 encryptDropZone.addEventListener('drop', (e)=>{
     e.preventDefault();
     encryptDropZone.classList.remove('dragover');
-    if(e.target.files.length>0)
+     if(e.dataTransfer.files.length>0)
     {
-        handleEFile(e.target.files[0]);
-        //whole process ensures the element gets updated since
-        //html input for files is finnicky with drag and drop method
-        const dataTransfer = new DataTransfer();
-        dataTransfer.items.add(encryptFile);
-        encryptInp.files= dataTransfer.files;
+        handleEFile(e.dataTransfer.files[0]);
+        encryptInp.files = e.dataTransfer.files;
+        e.preventDefault();
+     
     }
-});
-
-encryptDropZone.addEventListener('click', ()=>{
-    encryptInp.click();
 });
 
 encryptInp.addEventListener('change',(e)=>{
@@ -62,6 +70,7 @@ encryptInp.addEventListener('change',(e)=>{
 
 decryptDropZone.addEventListener('dragover', (e)=>
 {
+    
     e.preventDefault();//preven reload
     decryptDropZone.classList.add('dragover');//highlight box
 });
@@ -74,19 +83,13 @@ decryptDropZone.addEventListener('dragleave', (e)=>
 decryptDropZone.addEventListener('drop', (e)=>{
     e.preventDefault();
     decryptDropZone.classList.remove('dragover');
-    if(e.target.files.length>0)
+    if(e.dataTransfer.files.length>0)
     {
-        handleDFile(e.target.files[0]);
-        const dataTransfer = new DataTransfer();
-        dataTransfer.items.add(decryptFile);
-        decryptInp.files= dataTransfer.files;
+        handleDFile(e.dataTransfer.files[0]);
+        decryptInp.files = e.dataTransfer.files;
+        e.preventDefault();
+     
     }
-});
-
-
-
-decryptDropZone.addEventListener('click', ()=>{
-    decryptInp.click();
 });
 
 decryptInp.addEventListener('change',(e)=>{
@@ -122,6 +125,11 @@ document.getElementById('encodeBut').addEventListener('click', async (e)=>{
         });
         if(response.ok){
             console.log("Success! File sent for encryption");
+            const data =  await response.text();
+            // this means that whatever C++ returns, it needs to be written in public
+           hiddenInTheLeaf("code.png"); // replace with file you want to use in the future
+
+            console.log(data);
         }
         else
         {
@@ -132,7 +140,7 @@ document.getElementById('encodeBut').addEventListener('click', async (e)=>{
     }
     catch(err)
     {
-        console.error("Network error occured: are you sure the server.js is on?", err);
+        console.error(err.message);
         alert("Network error occured: are you sure the server.js is on?");
     }
 
@@ -161,6 +169,9 @@ document.getElementById('decodeBut').addEventListener('click', async (e)=>{
         });
         if(response.ok){
             console.log("Success! File sent for decryption");
+            const data =  await response.text();
+            hiddenInTheLeaf("code.png"); //replace with file you want to use in the future
+            console.log(data);
         }
         else
         {
@@ -171,10 +182,9 @@ document.getElementById('decodeBut').addEventListener('click', async (e)=>{
     }
     catch(err)
     {
-        console.error("Network error occured: are you sure the server.js is on?", err);
+        console.error(err.message);
         alert("Network error occured: are you sure the server.js is on?");
     }
 })
-
 
 
