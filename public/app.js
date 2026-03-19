@@ -8,6 +8,20 @@ const hiddenDivBut = document.getElementById('hiddenHuffman');
 let encryptFile=null;
 let decryptFile = null;
 
+//access sidebar div
+const sideBarDiv = document.getElementById("mySide");
+
+//Functions for sidebars
+function w3_open()
+{
+    document.getElementById("mySide").style.width = "100%";
+    document.getElementById("mySide").style.display = "block";
+}
+
+function w3_close()
+{
+    document.getElementById("mySide").style.display = "none";
+}
 
 //Function to take file
 function handleEFile(file){
@@ -33,6 +47,21 @@ function hiddenInTheLeaf(filePath)//just unhides the button
     const anchor = hiddenDivBut.getElementsByTagName('a');
     anchor[0].setAttribute("href",filePath); // replace code.png with the file you need to upload ig
     anchor[0].setAttribute("download",filePath);
+}
+
+//Edit this later to connect to an onclick to change the file selection in hidden with that
+function generateSideBad(data)
+{
+    for(let i = 0; i < data.length-1; i+=2)
+    {
+        const elementNode = document.createElement('a');
+        elementNode.setAttribute("href", data[i+1]);
+        elementNode.setAttribute("download", data[i]);
+        elementNode.textContent = `${data[i]}:${data[i+1]}`;
+        elementNode.style.display = "block";
+        elementNode.style.marginBottom = "10px";
+        sideBarDiv.append(elementNode);
+    }
 }
 
 //make a detector for when each element (encryptDrop or decryptDrop)
@@ -125,16 +154,16 @@ document.getElementById('encodeBut').addEventListener('click', async (e)=>{
         });
         if(response.ok){
             console.log("Success! File sent for encryption");
-            const data =  await response.text();
+            const data =  await response.json();
             // this means that whatever C++ returns, it needs to be written in public
-           hiddenInTheLeaf("code.png"); // replace with file you want to use in the future
-
+            hiddenInTheLeaf(data.currFilePath); // replace with file you want to use in the future
+            generateSideBad(data.data);
             console.log(data);
         }
         else
         {
             console.error("Server Error: Error with data transfer for encryption, are you sure the server is on?");
-            alert("Server Error: Error with data transfer for encryption, are you sure the server is on?");
+            alert("Server Error: Error with data transfer for encryption, are you sure the server is on  or you inputted the right file type?");
         }
 
     }
@@ -169,14 +198,16 @@ document.getElementById('decodeBut').addEventListener('click', async (e)=>{
         });
         if(response.ok){
             console.log("Success! File sent for decryption");
-            const data =  await response.text();
-            hiddenInTheLeaf("code.png"); //replace with file you want to use in the future
+            const data =  await response.json();
+            // this means that whatever C++ returns, it needs to be written in public
+            hiddenInTheLeaf(data.currFilePath); // replace with file you want to use in the future
+            generateSideBad(data.data);
             console.log(data);
         }
         else
         {
             console.error("Server Error: Error with data transfer for decryption, are you sure the server is on?");
-            alert("Server Error: Error with data transfer for decryption, are you sure the server is on?");
+            alert("Server Error: Error with data transfer for decryption, are you sure the server is on or you inputted the right file type?");
         }
 
     }
