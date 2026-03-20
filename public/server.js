@@ -48,16 +48,19 @@ class LRUCache{
         //Add to front of the list
     }
     //Key is the number of files inputted
-    get(key)
+    _get(key)
     {
         if(!this.hash_map.has(key))
         {
             return -1;
         }
         let node = this.hash_map.get(key);
+        let val = node.value;
+        console.log(`Finished ${node}`);
         //remove and add node to front 
         this._remove(node);
         this._add(node);
+        return val;
     }
     //input number of files inputted with a subsequent filepath value
     put(key, value){
@@ -75,7 +78,19 @@ class LRUCache{
         }
     }
     accMap(){ //returns a map
-        return this.hash_map;
+        if(this.hash_map.length == 0)
+        {
+            return null;
+        }
+        let curr = this.head.next;
+        let arr = [];
+        while(curr !== null)
+        {
+            arr.push(curr.data);
+            arr.push(curr.value);
+            curr = curr.next;
+        }
+        return arr;
     }
 }
 
@@ -188,11 +203,7 @@ app.post('/huffman', upload.single('mainfile'), async (req, res)=>{
             "data": [],
         };
         //get each element in the lruMap
-        lruMap.forEach((value, key)=>{
-            let new_items = [key, value.value];
-            response.data = [...response.data, ...new_items];
-            console.log(response);
-        });
+        response.data = [...response.data, ...lruMap];
         res.status(200).json(response);
     }
     catch(error)
@@ -203,16 +214,29 @@ app.post('/huffman', upload.single('mainfile'), async (req, res)=>{
 });
 
 //Access a specific element of the map of filepaths in LRU cache and put it on top priority after accessing
-app.post('/accessMap', (req,res)=>{
-    res.setHeader('Content-Type', 'text/plain');
-    lru.get(res.num);//assume that num is inputted and reorder
-    let lruMap = lru.accMap();
-    res.write(lruMap.size); //write how many elements are in lruMap
-    for(let i =0; i < lruMap.size; i++)
+app.post('/accessMap', async (req,res)=>{
+    try
     {
-        res.write(lruMap[i]); //write each element
+        //Figure out why res.key is not working tmrw
+        const access = parseInt(req.query.key,10);
+        const filePath = lru._get(access);
+        console.log(`Obtained ${filePath} from ${access}`)
+        let lruMap = lru.accMap();
+         //input as a json, 
+        let response = {
+            "currFilePath" : filePath,
+            "size": lruMap.size,
+            "data": [],
+        };
+        //get each element in the lruMap
+        response.data = [...response.data, ...lruMap];
+        res.status(200).json(response);
     }
-    res.end();
+    catch(error)
+    {
+        console.error('Error accessing LRUCache: ', error);
+        res.status(500).send('Error accessing LRUCache, potential error with server?');
+    }
 });
 
 //Setup for server to run via listening when port is opened after running: 'node server.js'

@@ -22,11 +22,16 @@ h1{
 }
 
 .hidden{
-    display: none;
+    display: none !important; /*Flags the important so it has priority over imageRes*/
 }
 
 .imageRes{
-    align-self: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap:15px;
+
 }
 
 /*for drop mechanics, set up app.js behavior too*/
