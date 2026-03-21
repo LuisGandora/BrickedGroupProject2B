@@ -4,10 +4,11 @@
 
 #ifndef BRICKEDGROUPPROJECT2B_HUFFMAN_TREE_H
 #define BRICKEDGROUPPROJECT2B_HUFFMAN_TREE_H
-#include <vector>
 #include <bits/exception_ptr.h>
+#include <vector>
 #include <algorithm>
 #include <string>
+#include <queue>
 
 using namespace std;
 
@@ -49,5 +50,16 @@ class HuffmanTree {
             swap(arr[i], arr[smallest]);
             heapify(arr, smallest, n);
         }
-    };
+    }
+    void preOrder(Node* root, vector<string>& words, string s) {
+        if (root == nullptr) {
+            return;
+        }
+        if (root -> left == nullptr && root ->right == nullptr) {
+            words.push_back(s);
+            return;
+        }
+        preOrder(root -> left, words, s + '0');
+        preOrder(root ->right, words, s + '1');
+    }
 };
