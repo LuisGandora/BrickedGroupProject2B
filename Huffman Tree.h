@@ -25,16 +25,16 @@ struct Node {
     }
 };
 
+struct Compare {
+    bool operator()(Node* a, Node* b) { //min-heap
+        return a->data > b->data;
+    }
+};
 class HuffmanTree {
     public:
-    HuffmanTree(string const& s) {
-
-    };
 
 
-    ~HuffmanTree();
-
-    void heapify(vector<Node*>& arr, int const i, int const n) {
+    /*void heapify(vector<Node*>& arr, int const i, int const n) {
         int smallest = i;
         int left = 2 * i + 1;
         int right = 2 * i + 2;
@@ -50,7 +50,8 @@ class HuffmanTree {
             swap(arr[i], arr[smallest]);
             heapify(arr, smallest, n);
         }
-    }
+    }*/
+
     void preOrder(Node* root, vector<string>& words, string s) {
         if (root == nullptr) {
             return;
@@ -61,5 +62,33 @@ class HuffmanTree {
         }
         preOrder(root -> left, words, s + '0');
         preOrder(root ->right, words, s + '1');
+    }
+
+    vector<string> encode(string s, vector<int> frequency) {
+        int n = s.length();
+        priority_queue<Node*, vector<Node*>, Compare> prio_queue;
+
+        for (int i = 0; i < n; i++) {
+            Node* temp = new Node(frequency[i]);
+            prio_queue.push(temp);
+        }
+
+        while (prio_queue.size() >= 2) {
+            Node* left = prio_queue.top();
+            prio_queue.pop();
+            Node* right = prio_queue.top();
+            prio_queue.pop();
+
+            Node* newNode = new Node(left->data + right->data);
+            newNode->left = left;
+            newNode->right = right;
+
+            prio_queue.push(newNode);
+        }
+
+        Node* root = prio_queue.top();
+        vector<string> words;
+        preOrder(root, words, "");
+        return words;
     }
 };
