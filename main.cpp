@@ -30,9 +30,15 @@ int main(int argc, char* argv[]) {
         ofstream output = ofstream("public/uploads/encoded.txt" , ios_base::trunc);
         ifstream input = ifstream(path);
         //loop through path and compress all of the data (store row by row sep by '>')
-
+        string totalMesg = ""; //sep with new lines for returning /n
+        string temp = "";
+        
         //input in huffman tree for creation
-
+        while(getline(input, temp))
+        {
+            totalMesg += temp;
+            totalMesg += '\n';
+        }
         //get preorder for huffman tree creation
 
         //get encoded string
@@ -46,14 +52,17 @@ int main(int argc, char* argv[]) {
 
         push the encoded string message into the txt files
             -DOES NOT NEED function for bin conversion, just uses built in huffman tree
-
         */
+        output << "Key";
+        output << '\n';
+        output << "EncodedCSV";
     }
 
     else if (endsWith(path, ".txt")) {
         cout << "TXT detected" << endl;
         //Get the two paths for writing and reading
-
+        ofstream output = ofstream("public/uploads/decoded.csv", ios_base::trunc);
+        ifstream input = ifstream(path);
         /*
             Read the key for header based on structure and decode into a string seperated by spaces:
                 -Length of how many 'nodes' are in tree
@@ -66,8 +75,31 @@ int main(int argc, char* argv[]) {
         //recreate huffman tree based on this pattern
         
         //Then push the second encoded csv into the huffman tree and obtain the decoded message
-
+        string decodedMesg = "";
+        vector<string> writeBack;
         //Then reconstruct a csv file (like txt with new lines) and then end this portion
+        int i = 0;
+        while(i < decodedMesg.size())
+        {
+            string currLine = "";
+            int currWord = 0;
+            while(decodedMesg[i] !='\n')
+            {
+                currLine+= decodedMesg[i];
+                i+=1;
+            }
+            writeBack.push_back(currLine);
+            i+=1;
+
+        }
+
+        for(int i = 0; i < writeBack.size();i++)
+        {
+            output << writeBack[i];
+            output << '\n';
+        }
+
+        //Completed
     }
 
     else {
