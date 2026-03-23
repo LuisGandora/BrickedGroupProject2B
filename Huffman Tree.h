@@ -6,71 +6,93 @@
 #define BRICKEDGROUPPROJECT2B_HUFFMAN_TREE_H
 #include <bits/exception_ptr.h>
 #include <vector>
+#include <unordered_map>
 #include <algorithm>
 #include <string>
 #include <queue>
+#include <functional>
 
 using namespace std;
 
-#endif //BRICKEDGROUPPROJECT2B_HUFFMAN_TREE_H
+/*\
+ This is our Huffman Tree as implemented by me, Reggie Borelus. I used https://www.geeksforgeeks.org/dsa/huffman-coding-greedy-algo-3/ and https://www.w3schools.com/dsa/dsa_ref_huffman_coding.php as references
+ when implementing this tree and used  my expiernece coding the AVL Tree and expiernce from Prog 2 to implement this tree to the best of my ability.
+ */
 
 struct Node {
-    int data;
+    char ch;
+    int freq;
     Node *left, *right;
 
-    Node(int x) {
-        data = x;
+    Node(char ch, int freq) {
+        this->ch = ch;
+        this->freq = freq;
         left = nullptr;
         right = nullptr;
     }
 };
 
 struct Compare {
-    bool operator()(Node* a, Node* b) { //min-heap
-        return a->data > b->data;
+    bool operator()(Node* a, Node* b) { //min-heap comparison for priority queue
+        return a->freq > b->freq;
     }
 };
+
 class HuffmanTree {
+    private:
+    Node *root;
     public:
 
+    HuffmanTree() {
+        root = nullptr;
+    }
 
-    /*void heapify(vector<Node*>& arr, int const i, int const n) {
-        int smallest = i;
-        int left = 2 * i + 1;
-        int right = 2 * i + 2;
+    ~HuffmanTree() {
+        function<void(Node*)> deleteNode = [&](Node* node) {  //Wrapped a lambda expression in a function to recursively delete our nodes. Learned this one last semester when working on Minesweeper :D
+            if (node == nullptr) {
+                return;
+            }
+            if (node != nullptr) {
+                deleteNode(node->left);
+                deleteNode(node->right);
+                delete node;
+            }
+        };
+        deleteNode(root);
+        root = nullptr;
+    }
 
-        if (left < n && arr[left]->data < arr[smallest]->data) {
-            smallest = left;
-        }
-        if (right < n && arr[right]->data < arr[smallest]->data) {
-            smallest = right;
-        }
+    /*A preorder traversal to convert each character into a binary Huffman code*/
 
-        if (smallest != i) {
-            swap(arr[i], arr[smallest]);
-            heapify(arr, smallest, n);
-        }
-    }*/
-
-    void preOrder(Node* root, vector<string>& words, string s) {
+    void preOrder(Node* root, unordered_map<char, string>& codes, string s) {
         if (root == nullptr) {
             return;
         }
         if (root -> left == nullptr && root ->right == nullptr) {
-            words.push_back(s);
+            if (s.empty()) {
+                codes[root->ch] = "0";
+            }
+            else {
+                codes[root->ch] = s;
+            }
             return;
         }
-        preOrder(root -> left, words, s + '0');
-        preOrder(root ->right, words, s + '1');
+        preOrder(root -> left, codes, s + '0');
+        preOrder(root ->right, codes, s + '1');
     }
 
-    vector<string> encode(string s, vector<int> frequency) {
+    /*This function builds the tree and returns a map of their binary code */
+    unordered_map<char, string> buildTree(string s) {
         int n = s.length();
         priority_queue<Node*, vector<Node*>, Compare> prio_queue;
+        unordered_map<char, int> freqMap;
 
         for (int i = 0; i < n; i++) {
-            Node* temp = new Node(frequency[i]);
-            prio_queue.push(temp);
+            freqMap[s[i]]++;
+        }
+
+        for (auto it = freqMap.begin(); it != freqMap.end(); it++  ) {
+            prio_queue.push(new Node(it->first, it->second));
         }
 
         while (prio_queue.size() >= 2) {
@@ -79,16 +101,58 @@ class HuffmanTree {
             Node* right = prio_queue.top();
             prio_queue.pop();
 
-            Node* newNode = new Node(left->data + right->data);
+            Node* newNode = new Node('\0', left->freq+ right->freq);
             newNode->left = left;
             newNode->right = right;
 
             prio_queue.push(newNode);
         }
 
-        Node* root = prio_queue.top();
-        vector<string> words;
-        preOrder(root, words, "");
-        return words;
+        if (prio_queue.empty()) {
+            return {};
+        }
+        this->root = prio_queue.top();
+        unordered_map<char, string> codes;
+        preOrder(root, codes, "");
+        return codes;
     }
+
+    /*Uses the tree from above to encode the string into the binary representation*/
+    string encodeString(string s, unordered_map<char, string>& codes) {
+        string result = "";
+        for (int i = 0; i < s.size(); i++) {
+            result += codes[s[i]];
+        }
+        return result;
+    }
+
+
+    string decode(string encoded) {
+        string result = "";
+        Node* temp = root;
+
+        if (temp == nullptr) {
+            return result;
+        }
+
+        for (int i = 0; i < encoded.size(); i++) {
+            char ch = encoded[i];
+
+            if (ch == '0') {
+                temp = temp->left;
+            }
+            else {
+                temp = temp->right;
+            }
+
+            if (!temp->left && !temp->right) {
+                result += temp->ch;
+                temp = root;
+            }
+        }
+        return result;
+    }
+
 };
+
+#endif
