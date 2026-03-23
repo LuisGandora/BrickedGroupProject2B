@@ -15,8 +15,15 @@
 using namespace std;
 
 /*\
- This is our Huffman Tree as implemented by me, Reggie Borelus. I used https://www.geeksforgeeks.org/dsa/huffman-coding-greedy-algo-3/ and https://www.w3schools.com/dsa/dsa_ref_huffman_coding.php as references
- when implementing this tree and used  my expiernece coding the AVL Tree and expiernce from Prog 2 to implement this tree to the best of my ability.
+ This is our Hu ffman Tree as implemented by me, Reggie Borelus. I used https://www.geeksforgeeks.org/dsa/huffman-coding-greedy-algo-3/ and https://www.w3schools.com/dsa/dsa_ref_huffman_coding.php as references
+ when implementing this tree and used  my experience coding the AVL Tree and experience from Prog 2 to implement this tree to the best of my ability.
+
+ A general workflow for how this works:
+ 1. We input a string into the buildTree function.
+ 2. buildTree created a frequency map for how many times a character appears. Then each character is inserted into a priority queue, which retains the min-heap properties, as a node.
+ 3. The priority queue is then used to build a Huffman Tree.
+ 4. We then use our map and the same string to encode our string into a binary representation of itself.
+ 5. Since all chars are stored in the leaves of the tree, the decode function traverse (0 meaning go left and 1 meaning go right) the tree until it hits the leaves and prints out the characters there.
  */
 
 struct Node {
