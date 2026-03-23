@@ -14,9 +14,9 @@
 
 using namespace std;
 
-/*\
+/*
  This is our Hu ffman Tree as implemented by me, Reggie Borelus. I used https://www.geeksforgeeks.org/dsa/huffman-coding-greedy-algo-3/ and https://www.w3schools.com/dsa/dsa_ref_huffman_coding.php as references
- when implementing this tree and used  my experience coding the AVL Tree and experience from Prog 2 to implement this tree to the best of my ability.
+ when implementing this tree and used my experience coding the AVL Tree and experience from Prog 2 to implement this tree to the best of my ability.
 
  A general workflow for how this works:
  1. We input a string into the buildTree function.
