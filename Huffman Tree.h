@@ -24,6 +24,18 @@ using namespace std;
  3. The priority queue is then used to build a Huffman Tree.
  4. We then use our map and the same string to encode our string into a binary representation of itself.
  5. Since all chars are stored in the leaves of the tree, the decode function traverse (0 meaning go left and 1 meaning go right) the tree until it hits the leaves and prints out the characters there.
+
+ EXAMPLE:
+
+int main() {
+    HuffmanTree ht;
+    string s = "Hello World";
+    unordered_map<char, string> map = ht.buildTree(s);
+    string encoded = ht.encodeString(s, map);
+    string decoded = ht.decode(encoded);
+
+    cout << encoded << "\n" << decoded << endl;
+}
  */
 
 struct Node {
