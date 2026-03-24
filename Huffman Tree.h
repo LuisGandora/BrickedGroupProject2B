@@ -83,7 +83,7 @@ class HuffmanTree {
 
     /*A preorder traversal to convert each character into a binary Huffman code*/
 
-    void preOrder(Node* root, unordered_map<char, string>& codes, string s) {
+    void preOrder(Node* root, unordered_map<char, string>& codes, const string& s) {
         if (root == nullptr) {
             return;
         }
@@ -172,7 +172,7 @@ class HuffmanTree {
         return result;
     }
 
-    string quickEncode(string s) {
+    string quickEncode(const string& s) {
         unordered_map<char, string> codes = buildTree(s);
         string result = encodeString(s, codes);
         return result;
