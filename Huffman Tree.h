@@ -172,6 +172,12 @@ class HuffmanTree {
         return result;
     }
 
+    string quickEncode(string s) {
+        unordered_map<char, string> codes = buildTree(s);
+        string result = encodeString(s, codes);
+        return result;
+    }
+
 };
 
 #endif
