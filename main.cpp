@@ -1,6 +1,9 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <vector>
+#include <unordered_map>
+#include "Huffman Tree.h"
 
 using namespace std;
 
@@ -36,28 +39,53 @@ int main(int argc, char* argv[]) {
         //input in huffman tree for creation
         while(getline(input, temp))
         {
+            if(temp != "" && temp.back() == '\r')
+            {
+                temp.pop_back();
+            }
             totalMesg += temp;
-            totalMesg += '\n';
         }
-        //get preorder for huffman tree creation
-
-        //get encoded string
-
+        //get huffman tree creation
+        HuffmanTree t_squared;
+        unordered_map<char, string> binMap = t_squared.buildTree(totalMesg);
+        
+        //get  encoded string
+        string encodedMesg = t_squared.encodeString(totalMesg, binMap);
+        string decodedMesg = t_squared.decode(encodedMesg);
         /*
         push huffman tree to the txt files
-            -Need a length var in bin to designate the size of the tree to decode
-            -(sort by pair values (char:bin string) where a parent node that doesnt have a char
-         is given unique char ('>') (Make sure to notify users that this char is not allowed))
-            -NEEDS a function for bin conversion
+            -push a inorder tree of chars that are encoded
 
         push the encoded string message into the txt files
             -DOES NOT NEED function for bin conversion, just uses built in huffman tree
         */
-        output << "Key";
-        output << '\n';
-        output << "EncodedCSV";
+        //get all keys and vals
+        string charKey = "";
+        string stringVal ="";
+        for(auto it = binMap.begin(); it != binMap.end(); it++)
+        {
+            char c  = it->first;
+            if(c == '\n') charKey += "[NL] ";
+            else if(c=='\r') charKey += "[CR] "; //to stop carrige register error
+            else if(c == '\t') charKey += "[TAB] ";
+            else if(c== ' ') charKey += "[SPC] ";
+            else{
+                charKey += c;
+                charKey += " ";
+            }
+            stringVal += it->second + " ";
+        }
+        cout << " KEY: " << charKey << endl;
+        output << "Key-First: " + charKey + '\n';
+        output << "Key-Second: " + stringVal + '\n';
+        output << "EncodedCSV\n";
+        output << encodedMesg; //PLACEHOLDER
+        output.close();
+        input.close();
+        cout << "OG: " << totalMesg << endl;
+        cout << "Encoded: " << encodedMesg << endl;
+        cout << "Decoded: " << decodedMesg << endl;
     }
-
     else if (endsWith(path, ".txt")) {
         cout << "TXT detected" << endl;
         //Get the two paths for writing and reading
@@ -100,6 +128,8 @@ int main(int argc, char* argv[]) {
         }
 
         //Completed
+        output.close();
+        input.close();
     }
 
     else {
