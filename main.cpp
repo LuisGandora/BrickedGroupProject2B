@@ -32,6 +32,11 @@ int main(int argc, char* argv[]) {
         cout << "CSV detected" << endl;
         ofstream output = ofstream("public/uploads/encoded.txt" , ios_base::trunc);
         ifstream input = ifstream(path);
+        if(!input.is_open())
+        {
+            cout <<"Path not able to be open" << endl;
+            return 1;
+        }
         //loop through path and compress all of the data (store row by row sep by '>')
         string totalMesg = ""; //sep with new lines for returning /n
         string temp = "";
@@ -78,8 +83,7 @@ int main(int argc, char* argv[]) {
         cout << " KEY: " << charKey << endl;
         output << "Key-First: " + charKey + '\n';
         output << "Key-Second: " + stringVal + '\n';
-        output << "EncodedCSV\n";
-        output << encodedMesg; //PLACEHOLDER
+        output << "EncodedCSV: " + encodedMesg + '\n';
         output.close();
         input.close();
         cout << "OG: " << totalMesg << endl;
@@ -91,6 +95,11 @@ int main(int argc, char* argv[]) {
         //Get the two paths for writing and reading
         ofstream output = ofstream("public/uploads/decoded.csv", ios_base::trunc);
         ifstream input = ifstream(path);
+        if(!input.is_open())
+        {
+            cout <<"Path not able to be open" << endl;
+            return 1;
+        }
         /*
             Read the key for header based on structure and decode into a string seperated by spaces:
                 -Length of how many 'nodes' are in tree
@@ -99,11 +108,61 @@ int main(int argc, char* argv[]) {
                         -normal chars: fine to pair as "char: binstring"
                         -nodes with no chars (parent nodes): pair as "'>'": binstring
         */
-
+        //obtain the map code
+        unordered_map<char, string> codes;
+        string charKey;
+        string stringVal;
+        string encodedMesg;
+        getline(input, charKey);
+        getline(input, stringVal);
+        getline(input, encodedMesg);
+        cout << "CharKey: " << charKey << endl;
+        cout << "stringVal: " << stringVal << endl;
+        cout << "EncodedMesg: "<< encodedMesg<<endl;
         //recreate huffman tree based on this pattern
-        
+        string temp = "";
+        vector<char> charVec;
+        vector<string> binVal;
+        for(int i = 13; i < charKey.size(); i++) //start at 12th index
+        {
+            if(charKey[i] == ' ')
+            {   
+                if(temp == "[NL]")  charVec.push_back('\n');
+                else if(temp =="[CR]") charVec.push_back('\r'); //to stop carrige register error
+                else if(temp == "[TAB]") charVec.push_back('\t');
+                else if(temp== "[SPC]") charVec.push_back(' ');
+                else charVec.push_back(temp[0]);
+                cout << temp << " ";
+                temp = "";
+                
+                continue;
+            }
+            temp += charKey[i];
+        }
+        cout <<endl;
+        for(int j = 12; j < stringVal.size(); j++)
+        {
+            if(stringVal[j] == ' ')
+            {
+                binVal.push_back(temp);
+                cout<<temp <<" ";
+                temp = "";
+                continue;
+            }
+            temp += stringVal[j];
+        }
+        cout <<endl;
+        //then recreate the unordered map (should be same size)
+        for(int k = 0; k < charVec.size(); k++)
+        {
+            codes[charVec[k]] = binVal[k];
+        }
         //Then push the second encoded csv into the huffman tree and obtain the decoded message
-        string decodedMesg = "";
+        HuffmanTree treeThatHuffs;
+        treeThatHuffs.preOrder(treeThatHuffs.root, codes, "");
+        cout << encodedMesg.substr(12, encodedMesg.size()) << endl;
+        string decodedMesg = treeThatHuffs.decode(encodedMesg.substr(12, encodedMesg.size()));
+        cout << "Raw Decoded Mesg: " << decodedMesg << endl;
         vector<string> writeBack;
         //Then reconstruct a csv file (like txt with new lines) and then end this portion
         int i = 0;

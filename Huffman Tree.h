@@ -39,10 +39,9 @@ struct Compare {
 };
 
 class HuffmanTree {
-    private:
-    Node *root;
     public:
 
+    Node *root;
     HuffmanTree() {
         root = nullptr;
     }
