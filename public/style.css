@@ -3,10 +3,11 @@ h1{
 }
 
 .flexcontainer{
-    width: 500px;
+    /* width: 500px; */
     margin:0 auto;
     display:flex;
     flex-direction: row;
+    align-self: center;
     gap: 20px;
 }
 
@@ -18,6 +19,19 @@ h1{
     padding-left: 50px;
     padding-right: 50px;
     border: solid 2px black;
+}
+
+.hidden{
+    display: none !important; /*Flags the important so it has priority over imageRes*/
+}
+
+.imageRes{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap:15px;
+
 }
 
 /*for drop mechanics, set up app.js behavior too*/
