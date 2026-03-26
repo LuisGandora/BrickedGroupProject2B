@@ -44,11 +44,7 @@ app.post('/huffman', upload.single('mainfile'), (req, res)=>{
     console.log("File received and saved to: ", req.file.path);
     const type = req.query.typeConv; //either 'encrypt' or 'decrypt'
     
-
-    console.log(`running C++ with: type=${type}, path=${req.file.path}`);
-
-    //how to send back info to app.js for html to download in future when we finish jss
-    res.send(`Success!`);
+   
 
 });
 

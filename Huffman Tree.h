@@ -80,17 +80,22 @@ class HuffmanTree {
         preOrder(root ->right, codes, s + '1');
     }
 
-    /*This function builds the tree and returns a map of their binary code */
-    unordered_map<char, string> buildTree(string s) {
-        int n = s.length();
-        priority_queue<Node*, vector<Node*>, Compare> prio_queue;
+    //accepts a string and int for length of string 
+    unordered_map<char, int> makeFreqMap(string s, int n)
+    {
         unordered_map<char, int> freqMap;
-
         for (int i = 0; i < n; i++) {
             freqMap[s[i]]++;
         }
+        // freqMap
+        return freqMap;
+    }
 
-        for (auto it = freqMap.begin(); it != freqMap.end(); it++  ) {
+    //Function meant to abstract and set up root with 2 vectors representing the freqmap due to errors with main
+     priority_queue<Node*, vector<Node*>, Compare> setUpQueue(unordered_map<char, int> freqMap)
+    {
+        priority_queue<Node*, vector<Node*>, Compare> prio_queue;
+        for (auto it = freqMap.begin(); it != freqMap.end(); it++) {
             prio_queue.push(new Node(it->first, it->second));
         }
 
@@ -110,6 +115,44 @@ class HuffmanTree {
         if (prio_queue.empty()) {
             return {};
         }
+        return prio_queue;
+    }
+
+    //Function meant to abstract and set up root with 2 vectors representing the freqmap due to errors with main
+     priority_queue<Node*, vector<Node*>, Compare> setUpQueueDecrypt(vector<char> first, vector<int> second)
+    {
+        priority_queue<Node*, vector<Node*>, Compare> prio_queue;
+        for (int i = 0; i < first.size();i++ ) {
+            prio_queue.push(new Node(first[i], second[i]));
+        }
+
+        while (prio_queue.size() >= 2) {
+            Node* left = prio_queue.top();
+            prio_queue.pop();
+            Node* right = prio_queue.top();
+            prio_queue.pop();
+
+            Node* newNode = new Node('\0', left->freq+ right->freq);
+            newNode->left = left;
+            newNode->right = right;
+
+            prio_queue.push(newNode);
+        }
+
+        if (prio_queue.empty()) {
+            return {};
+        }
+        return prio_queue;
+    }
+
+    /*This function builds the tree and returns a map of their binary code */
+    unordered_map<char, string> buildTree(string s) {
+        int n = s.length();
+        
+        unordered_map<char, int> freqMap = makeFreqMap(s, n);
+
+
+        priority_queue<Node*, vector<Node*>, Compare> prio_queue = setUpQueue(freqMap);
         this->root = prio_queue.top();
         unordered_map<char, string> codes;
         preOrder(root, codes, "");

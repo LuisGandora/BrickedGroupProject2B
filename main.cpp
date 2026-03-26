@@ -1,8 +1,10 @@
+//compilation command g++ -o out.exe main.cpp 'Huffman Tree'.h
 #include <iostream>
 #include <fstream>
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include <queue>
 #include "Huffman Tree.h"
 
 using namespace std;
@@ -20,17 +22,18 @@ bool endsWith(const string& str, const string& suffix) {
 
 int main(int argc, char* argv[]) {
 
-    if (argc != 3) {
-        cout << "Encrypt/decrypt file" << endl;
+    if (argc != 4) {
+        cout << "Not enough args" << endl;
         return 1;
     }
 
     string mode = argv[1];
     string path = argv[2];
+    int currFile = stoi(argv[3]);
 
     if (endsWith(path, ".csv")) {
-        cout << "CSV detected" << endl;
-        ofstream output = ofstream("public/uploads/encoded.txt" , ios_base::trunc);
+        string filePath = "public/uploads/encoded" + to_string(currFile)+ ".txt";
+        ofstream output = ofstream(filePath , ios_base::trunc);
         ifstream input = ifstream(path);
         if(!input.is_open())
         {
@@ -49,14 +52,15 @@ int main(int argc, char* argv[]) {
                 temp.pop_back();
             }
             totalMesg += temp;
+            totalMesg+='\n';
         }
         //get huffman tree creation
         HuffmanTree t_squared;
-        unordered_map<char, string> binMap = t_squared.buildTree(totalMesg);
+        unordered_map<char, string> encoder = t_squared.buildTree(totalMesg);
+        unordered_map<char, int> binMap = t_squared.makeFreqMap(totalMesg, totalMesg.size());
         
         //get  encoded string
-        string encodedMesg = t_squared.encodeString(totalMesg, binMap);
-        string decodedMesg = t_squared.decode(encodedMesg);
+        string encodedMesg = t_squared.encodeString(totalMesg, encoder);
         /*
         push huffman tree to the txt files
             -push a inorder tree of chars that are encoded
@@ -64,7 +68,7 @@ int main(int argc, char* argv[]) {
         push the encoded string message into the txt files
             -DOES NOT NEED function for bin conversion, just uses built in huffman tree
         */
-        //get all keys and vals
+        //get all keys and vals for output
         string charKey = "";
         string stringVal ="";
         for(auto it = binMap.begin(); it != binMap.end(); it++)
@@ -78,22 +82,22 @@ int main(int argc, char* argv[]) {
                 charKey += c;
                 charKey += " ";
             }
-            stringVal += it->second + " ";
+            stringVal += to_string(it->second) + " ";
         }
-        cout << " KEY: " << charKey << endl;
+        // cout << " KEY: " << charKey << endl;
+            
         output << "Key-First: " + charKey + '\n';
         output << "Key-Second: " + stringVal + '\n';
         output << "EncodedCSV: " + encodedMesg + '\n';
         output.close();
         input.close();
-        cout << "OG: " << totalMesg << endl;
-        cout << "Encoded: " << encodedMesg << endl;
-        cout << "Decoded: " << decodedMesg << endl;
+        //Output file path for server to read
+        cout << filePath << endl;
     }
     else if (endsWith(path, ".txt")) {
-        cout << "TXT detected" << endl;
         //Get the two paths for writing and reading
-        ofstream output = ofstream("public/uploads/decoded.csv", ios_base::trunc);
+        string filePath = "public/uploads/decoded" + to_string(currFile)+ ".csv";
+        ofstream output = ofstream(filePath, ios_base::trunc);
         ifstream input = ifstream(path);
         if(!input.is_open())
         {
@@ -108,22 +112,19 @@ int main(int argc, char* argv[]) {
                         -normal chars: fine to pair as "char: binstring"
                         -nodes with no chars (parent nodes): pair as "'>'": binstring
         */
-        //obtain the map code
-        unordered_map<char, string> codes;
+        //obtain the map code and values to be inputted into freqmap
+        unordered_map<char, int> freqMap; //req map
         string charKey;
         string stringVal;
         string encodedMesg;
         getline(input, charKey);
         getline(input, stringVal);
         getline(input, encodedMesg);
-        cout << "CharKey: " << charKey << endl;
-        cout << "stringVal: " << stringVal << endl;
-        cout << "EncodedMesg: "<< encodedMesg<<endl;
         //recreate huffman tree based on this pattern
         string temp = "";
         vector<char> charVec;
-        vector<string> binVal;
-        for(int i = 13; i < charKey.size(); i++) //start at 12th index
+        vector<int> binVal;
+        for(int i = 11; i < charKey.size(); i++) //start at 11th index
         {
             if(charKey[i] == ' ')
             {   
@@ -132,37 +133,34 @@ int main(int argc, char* argv[]) {
                 else if(temp == "[TAB]") charVec.push_back('\t');
                 else if(temp== "[SPC]") charVec.push_back(' ');
                 else charVec.push_back(temp[0]);
-                cout << temp << " ";
+                //cout << charVec[charVec.size()-1] << "check" << " ";//Extra space??
                 temp = "";
                 
                 continue;
             }
             temp += charKey[i];
         }
-        cout <<endl;
+        //cout <<endl;
         for(int j = 12; j < stringVal.size(); j++)
         {
             if(stringVal[j] == ' ')
             {
-                binVal.push_back(temp);
-                cout<<temp <<" ";
+                binVal.push_back(stoi(temp));
+                //cout<<temp <<" ";
                 temp = "";
                 continue;
             }
             temp += stringVal[j];
         }
-        cout <<endl;
-        //then recreate the unordered map (should be same size)
-        for(int k = 0; k < charVec.size(); k++)
-        {
-            codes[charVec[k]] = binVal[k];
-        }
-        //Then push the second encoded csv into the huffman tree and obtain the decoded message
+        //cout <<endl;
+        //Process to recreate tree
         HuffmanTree treeThatHuffs;
+        priority_queue<Node*, vector<Node*>, Compare> temp_Queue = treeThatHuffs.setUpQueueDecrypt(charVec, binVal);
+        treeThatHuffs.root = temp_Queue.top();
+        unordered_map<char, string> codes;
         treeThatHuffs.preOrder(treeThatHuffs.root, codes, "");
-        cout << encodedMesg.substr(12, encodedMesg.size()) << endl;
+        
         string decodedMesg = treeThatHuffs.decode(encodedMesg.substr(12, encodedMesg.size()));
-        cout << "Raw Decoded Mesg: " << decodedMesg << endl;
         vector<string> writeBack;
         //Then reconstruct a csv file (like txt with new lines) and then end this portion
         int i = 0;
@@ -177,7 +175,6 @@ int main(int argc, char* argv[]) {
             }
             writeBack.push_back(currLine);
             i+=1;
-
         }
 
         for(int i = 0; i < writeBack.size();i++)
@@ -189,6 +186,8 @@ int main(int argc, char* argv[]) {
         //Completed
         output.close();
         input.close();
+        //output the final filepath for server to read
+        cout << filePath<<endl;
     }
 
     else {
