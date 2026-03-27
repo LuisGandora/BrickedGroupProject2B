@@ -1,4 +1,6 @@
-//compilation command g++ -o out.exe main.cpp 'Huffman Tree'.h
+//compilation command 
+//cd public
+//g++ -o out.exe main.cpp 'Huffman Tree'.h
 #include <iostream>
 #include <fstream>
 #include <string>

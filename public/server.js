@@ -2,6 +2,8 @@
 //npm init -y
 //npm install express cors
 //npm install express multer
+//Set up permissions to avoid EPERM errors
+//npm config set prefix
 /*
     How to run:
         -Used live serve for index.html but you can also open a new terminal and run index.html i thinkg
@@ -97,6 +99,7 @@ class LRUCache{
 const express = require('express');
 const multer = require('multer');//useful for setting up temperorary folders for server
 const { exec } = require('child_process');
+const {execFile} = require('child_process');
 const fs = require('fs'); //use the fs library to access this
 const path = require('path') //addition that allows for handling and transforming file paths
 const app=express(); //creates a express app
@@ -175,36 +178,59 @@ app.post('/huffman', upload.single('mainfile'), async (req, res)=>{
         const type = req.query.typeConv; //either 'encrypt' or 'decrypt'
         
         console.log(`running C++ with: type=${type}, path=${req.file.path}`);
-
-        //how to send back info to app.js for html to download in future when we finish jss
-
         const srcPath = req.file.path;
-        
-
-        //copy 
 
         //later replace with the file path of the modified code
         fileAmnt = fileAmnt+1;
+        
+         //Execute the out.exe already compiles
+        console.log(`running C++ with: type=${type}, path=${req.file.path}`);
+        //setup execution path
+        const exePath =path.join(__dirname, 'out.exe');
+        exec(`${exePath} ${type} ${srcPath} ${fileAmnt}`, async (error, stdout,stderr)=>{
+            //Execution Errors
+            if(error)
+            {
+                console.error(`Exit Code: ${error.code}`);
+                console.error(`Error signal: ${error.signal}`)
+                if(stderr) console.error(`C++ STDERR output: ${error.message}`);
+                console.error(`execution error: ${error}`);
+                return res.status(500).json({error:error.message});
+            }
+            //STD error with I/O or libs
+            if(stderr)
+            {
+                //no need to return since it should pass through as normal
+                console.error(`std error: ${stderr}`);
+            }
+            console.log(`c++ output: ${stdout}`);
+            const currFilePath = stdout.trim(); //check if newline characters exist and clean them
+        
+            try{
+                //executable from c++ and then store it via fs.promises.copyfile
+                //store the file in req.file.path
 
-        //later you can edit the destination path to point to the file edited by the 
-        //executable from c++ and then store it via fs.promises.copyfile
-        //store the file in req.file.path
-        const destinationPath = path.join(publicUploadDir, req.file.filename);
-        const realPath = path.join('uploads', req.file.filename)
 
-        await fs.promises.copyFile(srcPath, destinationPath);
-        lru.put(fileAmnt, realPath);//put the file path
-        console.log(realPath);
-        let lruMap = lru.accMap();
-        //input as a json, 
-        let response = {
-            "currFilePath" : realPath,
-            "size": lruMap.size,
-            "data": [],
-        };
-        //get each element in the lruMap
-        response.data = [...response.data, ...lruMap];
-        res.status(200).json(response);
+                lru.put(fileAmnt, currFilePath);//put the file path
+                let lruMap = lru.accMap();
+                //input as a json, 
+                const response = {
+                    success: true,
+                    "currFilePath":currFilePath,
+                    "size":lru.hash_map.size,
+                    "data": lruMap
+                }
+                res.status(200).json(response);
+            }
+            catch(error)
+            {
+                console.error('Fatal Server Error:', error);
+                res.status(500).send('Error processing request'); 
+            }
+
+        });
+        //copy 
+       
     }
     catch(error)
     {
@@ -217,20 +243,26 @@ app.post('/huffman', upload.single('mainfile'), async (req, res)=>{
 app.post('/accessMap', async (req,res)=>{
     try
     {
-        //Figure out why res.key is not working tmrw
-        const access = parseInt(req.query.key,10);
-        const filePath = lru._get(access);
-        console.log(`Obtained ${filePath} from ${access}`)
-        let lruMap = lru.accMap();
-         //input as a json, 
-        let response = {
-            "currFilePath" : filePath,
-            "size": lruMap.size,
-            "data": [],
-        };
-        //get each element in the lruMap
-        response.data = [...response.data, ...lruMap];
-        res.status(200).json(response);
+        if(req.query.key || !isNaN(parseInt(req.query.key, 10))){
+            //Figure out why res.key is not working tmrw
+            const access = parseInt(req.query.key,10);
+            const filePath = lru._get(access);
+            if(filePath == -1)
+            {
+                return res.status(404).json({error: "File not found in cache for key"});
+            }
+            console.log(`Obtained ${filePath} from ${access}`)
+            let lruMap = lru.accMap();
+            //input as a json, 
+            let response = {
+                "currFilePath" : filePath,
+                "size": lruMap.size,
+                "data": [],
+            };
+            //get each element in the lruMap
+            response.data = [...response.data, ...lruMap];
+            res.status(200).json(response);
+        }
     }
     catch(error)
     {

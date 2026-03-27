@@ -25,13 +25,12 @@ function w3_close()
 
 async function accessKey(key) //to Call upon button press
 {
-
     try{
         /*Fetch fetches a express link that is live via node, 
         this method allows us to pass info directly to server.js to run c++
         Uses the POST method which sends Data to backend server in the body of the request
         */
-       console.log(`This is key ${key}`);
+        console.log(`This is key ${key}`);
         const response = await fetch(`http://localhost:5500/accessMap?key=${key}`, {
             method:'POST',
         });
@@ -80,10 +79,19 @@ function hiddenInTheLeaf(filePath)//just unhides the button
         hiddenDivBut.classList.remove("hidden");
         
     }
+    const fileName = filePath.split('\\').pop().split('/').pop();
+
+    let webUrl = filePath;
+    if(webUrl.includes('public'))
+    {
+        webUrl = webUrl.split('public')[1];
+    }
+    webUrl = webUrl.replace(/\\/g, '/'); //replace window backslashes with standard forward slashes for web
+
     const anchor = hiddenDivBut.getElementsByTagName('a');
-    anchor[0].setAttribute("href",filePath); // replace code.png with the file you need to upload ig
-    anchor[0].setAttribute("download",filePath);
-    anchor[0].textContent = `Download ${filePath} here!`;
+    anchor[0].setAttribute("href",webUrl); // replace code.png with the file you need to upload ig
+    anchor[0].setAttribute("download",fileName);
+    anchor[0].textContent = `Download ${fileName} here!`;
 }
 
 //Edit this later to connect to an onclick to change the file selection in hidden with that
@@ -100,15 +108,19 @@ function generateSideBad(data)
     });
     for(let i = 0; i < data.length-1; i+=2)
     {
-        const elementNode = document.createElement('button');
-        // elementNode.setAttribute("href", data[i+1]);
-        // elementNode.setAttribute("download", data[i]);
-        elementNode.setAttribute("id", "LRUbutton");
-        elementNode.onclick= () => accessKey(data[i]);//sets equal to key //Fix this to be strictly on click
-        elementNode.textContent = `${data[i]}:${data[i+1]}`;
-        elementNode.style.display = "block";
-        elementNode.style.marginBottom = "10px";
-        sideBarDiv.append(elementNode);
+        if(data[i] != null)
+        {
+            const elementNode = document.createElement('button');
+            // elementNode.setAttribute("href", data[i+1]);
+            // elementNode.setAttribute("download", data[i]);
+            elementNode.setAttribute("id", "LRUbutton");
+            elementNode.onclick= () => accessKey(data[i]);//sets equal to key //Fix this to be strictly on click
+            elementNode.textContent = `${data[i]}:${data[i+1]}`;
+            elementNode.style.display = "block";
+            elementNode.style.marginBottom = "10px";
+            sideBarDiv.append(elementNode);
+        }
+        
     }
 }
 
