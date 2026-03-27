@@ -1,2 +1,4 @@
 #Ignore uploads folder (Just for memory)
 uploads/
+public/out.exe
+public/uploads/
