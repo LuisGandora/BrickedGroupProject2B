@@ -17,7 +17,7 @@ Ensure you are in the directory/folder where you cloned this for the next few st
 
 5. run server with 'node public\server.js' then visit the local link established
 
-<h2>Features<h2>
+<h2>Features</h2>
 -Locally hosted website that works as the front end for encryption types (C++/node.js)
 -Huffman coding based Encryption and decryption of spreadsheets inputted
 -History Side Tab to refer to the  3 most accessed files for reference
