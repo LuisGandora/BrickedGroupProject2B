@@ -92,7 +92,7 @@ class HuffmanTree {
     }
 
     //Function meant to abstract and set up root with 2 vectors representing the freqmap due to errors with main
-     priority_queue<Node*, vector<Node*>, Compare> setUpQueue(unordered_map<char, int> freqMap)
+    priority_queue<Node*, vector<Node*>, Compare> setUpQueue(unordered_map<char, int> freqMap)
     {
         priority_queue<Node*, vector<Node*>, Compare> prio_queue;
         for (auto it = freqMap.begin(); it != freqMap.end(); it++) {
@@ -119,7 +119,7 @@ class HuffmanTree {
     }
 
     //Function meant to abstract and set up root with 2 vectors representing the freqmap due to errors with main
-     priority_queue<Node*, vector<Node*>, Compare> setUpQueueDecrypt(vector<char> first, vector<int> second)
+    priority_queue<Node*, vector<Node*>, Compare> setUpQueueDecrypt(vector<char> first, vector<int> second)
     {
         priority_queue<Node*, vector<Node*>, Compare> prio_queue;
         for (int i = 0; i < first.size();i++ ) {
@@ -162,6 +162,7 @@ class HuffmanTree {
     /*Uses the tree from above to encode the string into the binary representation*/
     string encodeString(string s, unordered_map<char, string>& codes) {
         string result = "";
+        result.reserve(s.size()*8); //So RAM doesnt break
         for (int i = 0; i < s.size(); i++) {
             result += codes[s[i]];
         }
@@ -171,6 +172,7 @@ class HuffmanTree {
 
     string decode(string encoded) {
         string result = "";
+        result.reserve(encoded.size()*8);
         Node* temp = root;
 
         if (temp == nullptr) {

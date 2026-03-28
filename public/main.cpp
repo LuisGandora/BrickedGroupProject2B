@@ -7,6 +7,8 @@
 #include <vector>
 #include <unordered_map>
 #include <queue>
+#include <sstream>
+#include <string_view>
 #include "Huffman Tree.h"
 
 using namespace std;
@@ -35,66 +37,76 @@ int main(int argc, char* argv[]) {
 
     if (endsWith(path, ".csv")) {
         string filePath = "public/uploads/encoded" + to_string(currFile)+ ".txt";
-        ofstream output = ofstream(filePath , ios_base::trunc);
         ifstream input = ifstream(path);
         if(!input.is_open())
         {
             cout <<"Path not able to be open" << endl;
             return 1;
         }
-        //loop through path and compress all of the data (store row by row sep by '>')
-        string totalMesg = ""; //sep with new lines for returning /n
-        string temp = "";
-        
-        //input in huffman tree for creation
-        while(getline(input, temp))
-        {
-            if(temp != "" && temp.back() == '\r')
+        //Phase 1: Build frequency map without storing the whole file
+        unordered_map<char, int> binMap;
+        string totMesg;
+        totMesg.reserve(5000000); //to store that much data (prevent dynamic errors)
+        string line;
+        while(getline(input, line)){
+            for(char c: line)
             {
-                temp.pop_back();
+                binMap[c]++;
+                
+                
+                
             }
-            totalMesg += temp;
-            totalMesg+='\n';
+            //directly push to prevent errors
+            totMesg.append(line);
+            totMesg.push_back('\n');
+            binMap['\n']++;
         }
-        //get huffman tree creation
-        HuffmanTree t_squared;
-        unordered_map<char, string> encoder = t_squared.buildTree(totalMesg);
-        unordered_map<char, int> binMap = t_squared.makeFreqMap(totalMesg, totalMesg.size());
-        
-        //get  encoded string
-        string encodedMesg = t_squared.encodeString(totalMesg, encoder);
-        /*
-        push huffman tree to the txt files
-            -push a inorder tree of chars that are encoded
+        //now encode the tot message effectively using string stream
 
-        push the encoded string message into the txt files
-            -DOES NOT NEED function for bin conversion, just uses built in huffman tree
-        */
-        //get all keys and vals for output
+
+        //Phase 2 Build the tree
+        HuffmanTree t_squared;
+        //avoid as many passes to binmap directory
+        priority_queue<Node*, vector<Node*>, Compare> pq = t_squared.setUpQueue(binMap);
+        t_squared.root = pq.top();
+        unordered_map<char, string> encoder;
+        t_squared.preOrder(t_squared.root, encoder, "");
+        
+        //Phase 3 Write header and encoder directly to file
+        ofstream output(filePath, ios_base::trunc);
+        
+        stringstream ss(totMesg);
+
         string charKey = "";
         string stringVal ="";
-        for(auto it = binMap.begin(); it != binMap.end(); it++)
+        for(auto const& [charact, frequen]: binMap)
         {
-            char c  = it->first;
-            if(c == '\n') charKey += "[NL] ";
-            else if(c=='\r') charKey += "[CR] "; //to stop carrige register error
-            else if(c == '\t') charKey += "[TAB] ";
-            else if(c== ' ') charKey += "[SPC] ";
-            else{
-                charKey += c;
-                charKey += " ";
-            }
-            stringVal += to_string(it->second) + " ";
+            // 1. Convert char to int, THEN to string, then ADD a space
+            charKey += to_string((int)charact) + " "; 
+            
+            // 2. Use to_string for frequency to avoid pointer arithmetic bugs
+            stringVal += to_string(frequen) + " ";
         }
         // cout << " KEY: " << charKey << endl;
             
         output << "Key-First: " + charKey + '\n';
         output << "Key-Second: " + stringVal + '\n';
-        output << "EncodedCSV: " + encodedMesg + '\n';
+        
+        //Now write encoded mesg
+        while(getline(ss, line))
+        {
+            output << t_squared.encodeString(line +'\n', encoder);
+            output << '\n';
+        }
+
         output.close();
         input.close();
         //Output file path for server to read
         cout << filePath << endl;
+
+
+
+        
     }
     else if (endsWith(path, ".txt")) {
         //Get the two paths for writing and reading
@@ -118,78 +130,61 @@ int main(int argc, char* argv[]) {
         unordered_map<char, int> freqMap; //req map
         string charKey;
         string stringVal;
-        string encodedMesg;
         getline(input, charKey);
         getline(input, stringVal);
-        getline(input, encodedMesg);
+        //Now updated at pos
         //recreate huffman tree based on this pattern
-        string temp = "";
         vector<char> charVec;
         vector<int> binVal;
-        for(int i = 11; i < charKey.size(); i++) //start at 11th index
-        {
-            if(charKey[i] == ' ')
-            {   
-                if(temp == "[NL]")  charVec.push_back('\n');
-                else if(temp =="[CR]") charVec.push_back('\r'); //to stop carrige register error
-                else if(temp == "[TAB]") charVec.push_back('\t');
-                else if(temp== "[SPC]") charVec.push_back(' ');
-                else charVec.push_back(temp[0]);
-                //cout << charVec[charVec.size()-1] << "check" << " ";//Extra space??
+        size_t charStart = charKey.find(": ") + 2;
+        size_t valStart = stringVal.find(": ") + 2;
+
+        string temp = "";
+        for(size_t i = charStart; i < charKey.size(); i++) {
+            if(charKey[i] == ' ') {
+                if(!temp.empty()) charVec.push_back((char)stoi(temp));
                 temp = "";
-                
-                continue;
+            } else {
+                temp += charKey[i];
             }
-            temp += charKey[i];
         }
-        //cout <<endl;
-        for(int j = 12; j < stringVal.size(); j++)
-        {
-            if(stringVal[j] == ' ')
-            {
-                binVal.push_back(stoi(temp));
-                //cout<<temp <<" ";
+
+        temp = "";
+        for(size_t j = valStart; j < stringVal.size(); j++) {
+            if(stringVal[j] == ' ') {
+                if(!temp.empty()) binVal.push_back(stoi(temp));
                 temp = "";
-                continue;
+            } else {
+                temp += stringVal[j];
             }
-            temp += stringVal[j];
         }
         //cout <<endl;
         //Process to recreate tree
         HuffmanTree treeThatHuffs;
         priority_queue<Node*, vector<Node*>, Compare> temp_Queue = treeThatHuffs.setUpQueueDecrypt(charVec, binVal);
+        if(temp_Queue.empty())
+        {
+            cout <<"Fatal Error: Priority Queue is empty!!!" << endl;
+            return 1;
+        }
         treeThatHuffs.root = temp_Queue.top();
         unordered_map<char, string> codes;
         treeThatHuffs.preOrder(treeThatHuffs.root, codes, "");
         
-        string decodedMesg = treeThatHuffs.decode(encodedMesg.substr(12, encodedMesg.size()));
-        vector<string> writeBack;
         //Then reconstruct a csv file (like txt with new lines) and then end this portion
-        int i = 0;
-        while(i < decodedMesg.size())
+        string line;
+        while(getline(input, line))
         {
-            string currLine = "";
-            int currWord = 0;
-            while(decodedMesg[i] !='\n')
-            {
-                currLine+= decodedMesg[i];
-                i+=1;
-            }
-            writeBack.push_back(currLine);
-            i+=1;
+            output << treeThatHuffs.decode(line);
         }
-
-        for(int i = 0; i < writeBack.size();i++)
-        {
-            output << writeBack[i];
-            output << '\n';
-        }
-
         //Completed
         output.close();
         input.close();
         //output the final filepath for server to read
         cout << filePath<<endl;
+
+
+
     }
 
     else {
