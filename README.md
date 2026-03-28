@@ -1,6 +1,7 @@
 <h1>BrickedGroupProject2B: CSV Huffman Style Encryption</h1>
 
-Youtube Link:
+Youtube Link:https://youtu.be/vz4rwuufSoU
+
 Link to Documentation: https://docs.google.com/document/d/17a82JZqoJ766iOT9wh9yuCjJN4BrCI0Yj62xOCCXOWs/edit?usp=sharing
 
 <h2>Instructions to Run</h2>
